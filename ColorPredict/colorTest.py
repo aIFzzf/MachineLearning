@@ -43,6 +43,6 @@ model.fit(X, y)
 # 使用模型进行预测
 color1 = [255, 0, 0]  # 红色
 color2 = [0, 255, 0]  # 绿色
-predicted_mixture = model.predict([[color1 + color2]])
+predicted_mixture = model.predict([color1 + color2])
 
 print("Predicted mixture for red and green: ", predicted_mixture)
