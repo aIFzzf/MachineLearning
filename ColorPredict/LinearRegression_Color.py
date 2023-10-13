@@ -19,15 +19,13 @@ X_train = np.concatenate((color1_array, color2_array), axis=1)
 y_train = blendcolor_array
 
 
-
-
 # 拟合模型
 model = LinearRegression()
 model.fit(X_train, y_train)
 
 
 # 预测
-A_new = np.array([1, 0, 0])
+A_new = np.array([1, 1, 0])
 B_new = np.array([0, 0, 1])
 X_new = np.concatenate((A_new, B_new)).reshape(1, -1)
 
@@ -56,39 +54,3 @@ print("Predicted intermediate color:", C_new)
 # ax.set_zlabel('Y')
 # plt.show()
 
-# 输入参数为两个RGB颜色和一个验证RGB颜色
-# def predict_color(color1, color2, val_color):
-#     # 将RGB颜色转换为向量
-#     vector1 = np.array(color1)
-#     vector2 = np.array(color2)
-#     val_vector = np.array(val_color)
-#
-#     # 将向量合并为矩阵
-#     X = np.vstack((vector1, vector2))
-#
-#     # 创建线性回归模型
-#     model = LinearRegression()
-#
-#     # 训练模型
-#     model.fit(X, val_vector)
-#
-#     # 预测输出颜色
-#     predicted_vector = model.predict(X)
-#     predicted_color = tuple(predicted_vector.astype(int))
-#
-#     return predicted_color
-#
-#
-
-
-# # 创建线性回归模型
-# model = LinearRegression()
-#
-# # fit model
-# model.fit(color1_array, color2_array)
-#
-# # make a prediction
-# yhat = model.predict(blendcolor_array)
-#
-# # summarize prediction
-# print(yhat)
