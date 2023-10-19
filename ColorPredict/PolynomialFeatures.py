@@ -75,18 +75,18 @@ def testdegreee(max_degree):
     return best_degree
 
 # ----- PCA -----
-# 降维到二维
+# 降维到3维
 n_components = 3
 
-pca = PCA(n_components = n_components)
-X_pca = pca.fit_transform(X_train)
-print(X_pca)
+# pca = PCA(n_components = n_components)
+# X_pca = pca.fit_transform(X_train)
+# print(X_pca)
 
 # ----- PCA -----
 
 max_degree = 10  # 设置要测试的最大多项式次数
-# best_degree = 1
-best_degree = testdegreee(max_degree)
+best_degree = 3
+# best_degree = testdegreee(max_degree)
 
 y = blendcolor_array
 
@@ -99,23 +99,31 @@ y = blendcolor_array
 # 创建一个多项式回归模型
 poly = PolynomialFeatures(degree=best_degree)
 # X_train_poly = poly.fit_transform(X_train)
-X_train_poly = poly.fit_transform(X_pca)
+X_train_poly = poly.fit_transform(X_train)
 reg = LinearRegression()
 reg.fit(X_train_poly, y)
 
 
 # 数据输入
+
+
 A_new = np.array([1, 1, 0])
 B_new = np.array([0, 0, 1])
 
-X_new =  np.hstack((A_new, B_new)).reshape(1, -1)
+X_test = np.random.rand(100, 2) * 2 - 1
 
-X_transformed_data = pca.transform(X_new)
+X_test_transformed = poly.transform(X_test)
+y_pred = reg.predict(X_test_transformed)
 
-X_new_poly = poly.transform(X_transformed_data)
 
-C_new = reg.predict(X_new_poly)
-print("Predicted intermediate color:", C_new)
+# X_new =  np.hstack((A_new, B_new)).reshape(1, -1)
+
+# X_transformed_data = pca.transform(X_new)
+
+# X_new_poly = poly.transform(X_new)
+
+# C_new = reg.predict(X_new_poly)
+
 
 # 获取多项式系数
 # coefs = model.coef_
@@ -125,14 +133,14 @@ print("Predicted intermediate color:", C_new)
 # print("截距：", intercept)
 
 # 可视化
-# fig = plt.figure()
-# ax = fig.add_subplot(111, projection='3d')
-#
-# # 绘制原始数据点
-# # ax.scatter(color1_array[:, 0], color1_array[:, 1], color1_array[:, 2], color='b', label='Original Data')
-# # ax.scatter(color2_array[:, 0], color2_array[:, 1], color2_array[:, 2], color='b', label='Original Data')
-# # ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
-#
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# 绘制原始数据点
+ax.scatter(X_test[:, 0], X_test[:, 1], y_pred, color='b', label='Original Data')
+# ax.scatter(color2_array[:, 0], color2_array[:, 1], color2_array[:, 2], color='b', label='Original Data')
+# ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
+
 # x_values_r = np.linspace(0, 1, 100)
 # x_values_g = np.linspace(0, 1, 100)
 # x_values_b = np.linspace(0, 1, 100)
@@ -164,7 +172,10 @@ print("Predicted intermediate color:", C_new)
 #
 #
 #
-# ax.set_xlabel('X1')
-# ax.set_ylabel('X2')
-# ax.set_zlabel('Y')
+ax.set_xlabel('X1')
+ax.set_ylabel('X2')
+ax.set_zlabel('Y')
+plt.legend()
+plt.colorbar()
+plt.show()
 # plt.show()
