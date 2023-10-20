@@ -9,6 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
+from sklearn.decomposition import PCA
 
 mpl.use('TkAgg')
 
@@ -37,53 +38,92 @@ def get_cv_score(degree):
     # 返回平均分数
     return np.mean(scores)
 
+# PCA算法
+def pca(data, n_components):
+    # 1. 数据标准化
+    mean = np.mean(data, axis=0)
+    std = np.std(data, axis=0)
+    data_normalized = (data - mean) / std
+
+    # 2. 计算协方差矩阵
+    covariance_matrix = np.cov(data_normalized.T)
+
+    # 3. 计算特征值和特征向量
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+
+    # 4. 选择主成分
+    idx = eigenvalues.argsort()[::-1]
+    eigenvectors = eigenvectors[:, idx]
+    eigenvectors = eigenvectors[:, :n_components]
+
+    # 5. 转换数据
+    transformed_data = data_normalized.dot(eigenvectors)
+
+    return transformed_data
+
+def testdegreee(max_degree):
+    best_degree = 1
+    best_score = -np.inf
+
+    for degree in range(1, max_degree + 1):
+        score = get_cv_score(degree)
+        if score > best_score:
+            best_score = score
+            best_degree = degree
+
+    print("best degree : ", best_degree)
+    return best_degree
+
+# ----- PCA -----
+# 降维到3维
+n_components = 3
+
+# pca = PCA(n_components = n_components)
+# X_pca = pca.fit_transform(X_train)
+# print(X_pca)
+
+# ----- PCA -----
+
 max_degree = 10  # 设置要测试的最大多项式次数
 best_degree = 3
-# best_score = -np.inf
-#
-# for degree in range(1, max_degree + 1):
-#     score = get_cv_score(degree)
-#     if score > best_score:
-#         best_score = score
-#         best_degree = degree
-#
-# print("Best polynomial degree:", best_degree)
+# best_degree = testdegreee(max_degree)
 
-
-X = np.hstack((color1_array, color2_array))
 y = blendcolor_array
 
 # 创建一个使用二次多项式特征的 Lasso 回归模型
-lasso_poly = make_pipeline(PolynomialFeatures(degree=best_degree), Lasso(alpha=0.5))
-
-# 训练模型
-lasso_poly.fit(X, y)
+# lasso_poly = make_pipeline(PolynomialFeatures(degree=best_degree), Lasso(alpha=0.1))
+#
+# # 训练模型
+# lasso_poly.fit(X_train, y)
 
 # 创建一个多项式回归模型
-# poly = PolynomialFeatures(degree=best_degree)
+poly = PolynomialFeatures(degree=best_degree)
 # X_train_poly = poly.fit_transform(X_train)
-# model = LinearRegression()
-# model.fit(X_train_poly, y_train)
+X_train_poly = poly.fit_transform(X_train)
+reg = LinearRegression()
+reg.fit(X_train_poly, y)
 
 
 # 数据输入
+
+
 A_new = np.array([1, 1, 0])
 B_new = np.array([0, 0, 1])
 
-# lasso 回归
-input_data = np.hstack((A_new, B_new)).reshape(1, -1)
-predicted_middle_color = lasso_poly.predict(input_data)
-print("Predicted middle color: ", predicted_middle_color)
+X_test = np.random.rand(100, 2) * 2 - 1
+
+X_test_transformed = poly.transform(X_test)
+y_pred = reg.predict(X_test_transformed)
 
 
-print("Coefficients: ", lasso_poly.named_steps['lasso'].coef_)
-# X_new = np.concatenate((A_new, B_new)).reshape(1, -1)
+# X_new =  np.hstack((A_new, B_new)).reshape(1, -1)
 
-# 使用多项式特征生成器转换新的输入数据
+# X_transformed_data = pca.transform(X_new)
+
 # X_new_poly = poly.transform(X_new)
 
-# C_new = model.predict(X_new_poly)
-# print("Predicted intermediate color:", C_new)
+# C_new = reg.predict(X_new_poly)
+
 
 # 获取多项式系数
 # coefs = model.coef_
@@ -93,14 +133,14 @@ print("Coefficients: ", lasso_poly.named_steps['lasso'].coef_)
 # print("截距：", intercept)
 
 # 可视化
-# fig = plt.figure()
-# ax = fig.add_subplot(111, projection='3d')
-#
-# # 绘制原始数据点
-# # ax.scatter(color1_array[:, 0], color1_array[:, 1], color1_array[:, 2], color='b', label='Original Data')
-# # ax.scatter(color2_array[:, 0], color2_array[:, 1], color2_array[:, 2], color='b', label='Original Data')
-# # ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
-#
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# 绘制原始数据点
+ax.scatter(X_test[:, 0], X_test[:, 1], y_pred, color='b', label='Original Data')
+# ax.scatter(color2_array[:, 0], color2_array[:, 1], color2_array[:, 2], color='b', label='Original Data')
+# ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
+
 # x_values_r = np.linspace(0, 1, 100)
 # x_values_g = np.linspace(0, 1, 100)
 # x_values_b = np.linspace(0, 1, 100)
@@ -132,7 +172,10 @@ print("Coefficients: ", lasso_poly.named_steps['lasso'].coef_)
 #
 #
 #
-# ax.set_xlabel('X1')
-# ax.set_ylabel('X2')
-# ax.set_zlabel('Y')
+ax.set_xlabel('X1')
+ax.set_ylabel('X2')
+ax.set_zlabel('Y')
+plt.legend()
+plt.colorbar()
+plt.show()
 # plt.show()
