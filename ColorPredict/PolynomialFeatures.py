@@ -14,11 +14,34 @@ from sklearn.decomposition import PCA
 mpl.use('TkAgg')
 
 # 读取数据
-color1_list,color1_array,color2_list,color2_array,blendcolor_list,blendcolor_array = common.read_data()
+color1_list,color1_array,color2_list,color2_array,blendcolor_list,blendcolor_array,lerp_list,lerp_array = common.read_data()
 
-X_train = np.concatenate((color1_array, color2_array), axis=1)
+# X_train = np.concatenate((color1_array, color2_array), axis=1)
+X_train = np.column_stack((color1_array,color2_array,lerp_array))
 
 y_train = blendcolor_array
+
+def create_poly_model(degree=2):
+    return make_pipeline(PolynomialFeatures(degree), LinearRegression())
+
+
+def generate_data(input_colors1, input_colors2, mix_ratios, output_colors):
+    X = np.column_stack((input_colors1, input_colors2, mix_ratios))
+    y = output_colors
+    return X, y
+
+def train_model(model, X, y):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    print("Mean squared error: ", mse)
+    return model
+
+def predict_color(model, color1, color2, mix_ratio):
+    input_data = np.array([color1 + color2 + [mix_ratio]])
+    return model.predict(input_data)[0]
+
 
 # 交叉验证
 def get_cv_score(degree):
@@ -88,7 +111,6 @@ max_degree = 10  # 设置要测试的最大多项式次数
 best_degree = 3
 # best_degree = testdegreee(max_degree)
 
-y = blendcolor_array
 
 # 创建一个使用二次多项式特征的 Lasso 回归模型
 # lasso_poly = make_pipeline(PolynomialFeatures(degree=best_degree), Lasso(alpha=0.1))
@@ -96,24 +118,28 @@ y = blendcolor_array
 # # 训练模型
 # lasso_poly.fit(X_train, y)
 
-# 创建一个多项式回归模型
-poly = PolynomialFeatures(degree=best_degree)
-# X_train_poly = poly.fit_transform(X_train)
-X_train_poly = poly.fit_transform(X_train)
-reg = LinearRegression()
-reg.fit(X_train_poly, y)
+
+X, y = generate_data(color1_list, color2_list, lerp_list, blendcolor_list)
+model = create_poly_model(degree=best_degree)
+trained_model = train_model(model, X, y)
 
 
-# 数据输入
+
+color1 = [1, 1, 0]
+color2 = [1, 1, 1]
 
 
-A_new = np.array([1, 1, 0])
-B_new = np.array([0, 0, 1])
+# 可视化
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 
-X_test = np.random.rand(100, 2) * 2 - 1
+s = np.arange(0, 1, 0.05)
+for i in s:
+    mix_ratio = i
+    predicted_color = predict_color(trained_model, color1, color2, mix_ratio)
+    print(predicted_color)
+    ax.scatter(predicted_color[0], predicted_color[1], predicted_color[2], color='b', label='Original Data')
 
-X_test_transformed = poly.transform(X_test)
-y_pred = reg.predict(X_test_transformed)
 
 
 # X_new =  np.hstack((A_new, B_new)).reshape(1, -1)
@@ -132,50 +158,15 @@ y_pred = reg.predict(X_test_transformed)
 # print("多项式系数：", coefs)
 # print("截距：", intercept)
 
-# 可视化
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
 
 # 绘制原始数据点
-ax.scatter(X_test[:, 0], X_test[:, 1], y_pred, color='b', label='Original Data')
+
 # ax.scatter(color2_array[:, 0], color2_array[:, 1], color2_array[:, 2], color='b', label='Original Data')
 # ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
 
-# x_values_r = np.linspace(0, 1, 100)
-# x_values_g = np.linspace(0, 1, 100)
-# x_values_b = np.linspace(0, 1, 100)
-# y_values = np.zeros((100, 3))
-# lower_bound = 0
-# upper_bound = 1
-# # input_data[0, 0] =x_values_r[50]
-# # input_data[0, 1] =x_values_g[20]
-# # input_data[0, 2] =x_values_b[60]
-#
-# for j in range(100):
-#     input_data = np.zeros((1, 6))
-#
-#     input_data[0,0] = x_values_r
-#     input_data[0,1] = x_values_g
-#     input_data[0,2] = x_values_b
-#     random_value_r = np.random.uniform(lower_bound, upper_bound)
-#     random_value_g = np.random.uniform(lower_bound, upper_bound)
-#     random_value_b = np.random.uniform(lower_bound, upper_bound)
-#     input_data[0,3] = random_value_r
-#     input_data[0,4] = random_value_g
-#     input_data[0,5] = random_value_b
-#
-#     print(input_data)
-#     # X_train = np.concatenate((color1_array, color2_array), axis=1)
-#
-#     y_values[j] = model.predict(input_data)
-# ax.plot(x_values_r, y_values, 'r-', label='Fitted curve')
-#
-#
-#
-ax.set_xlabel('X1')
-ax.set_ylabel('X2')
-ax.set_zlabel('Y')
-plt.legend()
-plt.colorbar()
+
+ax.set_xlabel('R')
+ax.set_ylabel('G')
+ax.set_zlabel('B')
 plt.show()
 # plt.show()

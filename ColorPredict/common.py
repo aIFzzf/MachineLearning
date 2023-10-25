@@ -18,6 +18,16 @@ def num_sum(wine_reviews,name):
 
     return new_num_list
 
+def get_num(wine_reviews,name):
+    num_list = []
+    for i in wine_reviews[name]:
+        num_list.append(i)
+
+    return num_list
+
+
+def clamp(num,a,b):
+    return max(min(num,max(a,b)),min(a,b))
 
 def read_data():
     wine_reviews = pd.read_csv(csvfilepath)
@@ -30,5 +40,9 @@ def read_data():
     blendcolor_list = num_sum(wine_reviews, "BlendColor")
     blendcolor_array = np.array(blendcolor_list)
 
-    return color1_list,color1_array,color2_list,color2_array,blendcolor_list,blendcolor_array
+    lerp_list = get_num(wine_reviews,"Lerp")
+    lerp_array = np.array(lerp_list)
+
+
+    return color1_list,color1_array,color2_list,color2_array,blendcolor_list,blendcolor_array,lerp_list,lerp_array
 
