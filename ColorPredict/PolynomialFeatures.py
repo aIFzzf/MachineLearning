@@ -104,19 +104,53 @@ reg = LinearRegression()
 reg.fit(X_train_poly, y)
 
 
+# 可视化
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
 # 数据输入
 
 
 A_new = np.array([1, 1, 0])
-B_new = np.array([0, 0, 1])
+B_new = np.array([1, 1, 0])
 
-X_test = np.random.rand(100, 2) * 2 - 1
-
-X_test_transformed = poly.transform(X_test)
+X_new = np.hstack((A_new, B_new)).reshape(1, -1)
+X_test_transformed = poly.transform(X_new)
 y_pred = reg.predict(X_test_transformed)
+print(y_pred)
+print("============")
+
+R_linspace = np.linspace(0,1,50)
+G_linspace = np.linspace(0,1,50)
+B_linspace = np.linspace(0,1,50)
+
+# A_new = np.array([])
+for i in range(0,50,1):
+
+    # X_test = np.random.uniform(0,1,6).reshape(1, -1)
+    A_color = np.array([R_linspace[i], G_linspace[i], 0])
+    B_color = np.array([0, 0, B_linspace[i]])
+
+    X_new = np.hstack((A_color, B_color)).reshape(1, -1)
+    print(X_new)
+    X_test_transformed = poly.transform(X_new)
+    y_pred = reg.predict(X_test_transformed)
+    print(y_pred)
+    # 绘制原始数据点
+    ax.scatter(1, 1, 0, color='y', label='Predict Data')
+    ax.scatter(0, 0, 1, color='b', label='Predict Data')
+    # ax.scatter(y_pred[:, 0], y_pred[:, 1], y_pred[:, 2], color='r', label='Predict Data')
+    ax.scatter(y_pred[:, 0], y_pred[:, 1], y_pred[:, 2], color='r', label='Predict Data')
 
 
+ax.set_xlabel('R')
+ax.set_ylabel('G')
+ax.set_zlabel('B')
+
+plt.show()
 # X_new =  np.hstack((A_new, B_new)).reshape(1, -1)
+# print(X_new)
+
 
 # X_transformed_data = pca.transform(X_new)
 
@@ -132,12 +166,9 @@ y_pred = reg.predict(X_test_transformed)
 # print("多项式系数：", coefs)
 # print("截距：", intercept)
 
-# 可视化
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
 
-# 绘制原始数据点
-ax.scatter(X_test[:, 0], X_test[:, 1], y_pred, color='b', label='Original Data')
+
+
 # ax.scatter(color2_array[:, 0], color2_array[:, 1], color2_array[:, 2], color='b', label='Original Data')
 # ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
 
@@ -170,12 +201,6 @@ ax.scatter(X_test[:, 0], X_test[:, 1], y_pred, color='b', label='Original Data')
 #     y_values[j] = model.predict(input_data)
 # ax.plot(x_values_r, y_values, 'r-', label='Fitted curve')
 #
-#
-#
-ax.set_xlabel('X1')
-ax.set_ylabel('X2')
-ax.set_zlabel('Y')
-plt.legend()
-plt.colorbar()
-plt.show()
+
+
 # plt.show()
