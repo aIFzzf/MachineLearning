@@ -26,21 +26,45 @@ def create_poly_model(degree=2):
 
 
 def generate_data(input_colors1, input_colors2, mix_ratios, output_colors):
-    X = np.column_stack((input_colors1, input_colors2, mix_ratios))
+    # X = np.column_stack((input_colors1, input_colors2, mix_ratios))
+    X = np.hstack((input_colors1, input_colors2, mix_ratios.reshape(-1, 1)))
     y = output_colors
     return X, y
 
 def train_model(model, X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    print("Mean squared error: ", mse)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model.fit(X, y)
+    # y_pred = model.predict(X_test)
+    # mse = mean_squared_error(y_test, y_pred)
+    # print("Mean squared error: ", mse)
+
+    poly_features = model.named_steps['polynomialfeatures']
+    linear_regression = model.named_steps['linearregression']
+    try:
+        print("Polynomial coefficients: \n", poly_features.get_feature_names_out())
+    except AttributeError:
+        print("Polynomial coefficients: \n", poly_features.get_feature_names())
+    print("Regression coefficients: \n", linear_regression.coef_)
+    print("Regression rank: \n", linear_regression.rank_)
+
+
     return model
 
+
+def train_polynomial_regression_model(X1, X2, y, degree=2):
+    input_data = np.hstack((X1, X2))
+    poly = PolynomialFeatures(degree=degree)
+    input_data_poly = poly.fit_transform(input_data)
+    model = LinearRegression()
+    model.fit(input_data_poly, y)
+    return model, poly
+
+
 def predict_color(model, color1, color2, mix_ratio):
-    input_data = np.array([color1 + color2 + [mix_ratio]])
+    # input_data = np.array([color1 + color2 + [mix_ratio]])
+    input_data = np.hstack((color1, color2, mix_ratio.reshape(-1, 1)))
     return model.predict(input_data)[0]
+
 
 
 # 交叉验证
@@ -109,38 +133,33 @@ n_components = 3
 
 max_degree = 10  # 设置要测试的最大多项式次数
 best_degree = 3
-# best_degree = testdegreee(max_degree)
 
 
-# 创建一个使用二次多项式特征的 Lasso 回归模型
-# lasso_poly = make_pipeline(PolynomialFeatures(degree=best_degree), Lasso(alpha=0.1))
-#
-# # 训练模型
-# lasso_poly.fit(X_train, y)
-
-
-X, y = generate_data(color1_list, color2_list, lerp_list, blendcolor_list)
-model = create_poly_model(degree=best_degree)
+# X, y = generate_data(color1_list, color2_list, lerp_list, blendcolor_list)
+X, y = generate_data(color1_array, color2_array, lerp_array, blendcolor_array)
+model = create_poly_model()
 trained_model = train_model(model, X, y)
 
 
 
 color1 = [1, 1, 0]
-color2 = [1, 1, 1]
-
+color2 = [0, 0, 1]
+mix_ratios = np.array([0.5])
+predicted_color = predict_color(trained_model, color1, color2, mix_ratios)
+print(predicted_color)
 
 # 可视化
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-s = np.arange(0, 1, 0.05)
-for i in s:
-    mix_ratio = i
-    predicted_color = predict_color(trained_model, color1, color2, mix_ratio)
-    print(predicted_color)
-    ax.scatter(predicted_color[0], predicted_color[1], predicted_color[2], color='b', label='Original Data')
-
-
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
+# #
+# s = np.arange(0, 1, 0.05)
+# for i in s:
+#     mix_ratio = i
+#     predicted_color = predict_color(trained_model, color1, color2, mix_ratio)
+#     # print(predicted_color)
+#     ax.scatter(predicted_color[0], predicted_color[1], predicted_color[2], color='b', label='Original Data')
+#
+#
 
 # X_new =  np.hstack((A_new, B_new)).reshape(1, -1)
 
@@ -165,8 +184,8 @@ for i in s:
 # ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
 
 
-ax.set_xlabel('R')
-ax.set_ylabel('G')
-ax.set_zlabel('B')
-plt.show()
+# ax.set_xlabel('R')
+# ax.set_ylabel('G')
+# ax.set_zlabel('B')
+# plt.show()
 # plt.show()
