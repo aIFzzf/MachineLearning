@@ -149,15 +149,15 @@ predicted_color = predict_color(trained_model, color1, color2, mix_ratios)
 print(predicted_color)
 
 # 可视化
-# fig = plt.figure()
-# ax = fig.add_subplot(111, projection='3d')
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 # #
-# s = np.arange(0, 1, 0.05)
-# for i in s:
-#     mix_ratio = i
-#     predicted_color = predict_color(trained_model, color1, color2, mix_ratio)
+s = np.arange(0, 1, 0.05)
+for i in s:
+    mix_ratio = i
+    predicted_color = predict_color(trained_model, color1, color2, mix_ratio)
 #     # print(predicted_color)
-#     ax.scatter(predicted_color[0], predicted_color[1], predicted_color[2], color='b', label='Original Data')
+    ax.scatter(predicted_color[0], predicted_color[1], predicted_color[2], color='b', label='Original Data')
 #
 #
 
@@ -184,8 +184,8 @@ print(predicted_color)
 # ax.scatter(blendcolor_array[:, 0], blendcolor_array[:, 1], blendcolor_array[:, 2], color='r', label='Original Data')
 
 
-# ax.set_xlabel('R')
-# ax.set_ylabel('G')
-# ax.set_zlabel('B')
-# plt.show()
+ax.set_xlabel('R')
+ax.set_ylabel('G')
+ax.set_zlabel('B')
+plt.show()
 # plt.show()
